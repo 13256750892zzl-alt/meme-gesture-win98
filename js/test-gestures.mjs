@@ -37,20 +37,23 @@ function mockHand(fingerState) {
     lm[4] = pt(0.30, 0.72); // thumb tip tucked away from index
     lm[3] = pt(0.34, 0.66); // thumb ip
   }
-  // OK: tips form a circle, index not counted as extended
+  // OK: thumb+index circle, middle/ring/pinky raised
   if (fingerState.special === "ok") {
-    lm[4] = pt(0.46, 0.50); // thumb tip
+    lm[4] = pt(0.46, 0.48); // thumb tip
     lm[3] = pt(0.44, 0.52); // thumb ip
-    lm[8] = pt(0.48, 0.50); // index tip near thumb
-    lm[6] = pt(0.47, 0.48); // index pip ABOVE tip so finger is curled
-    lm[7] = pt(0.47, 0.49); // index dip
+    lm[8] = pt(0.48, 0.48); // index tip near thumb (circle)
+    lm[6] = pt(0.47, 0.46); // index pip above tip = curled
+    lm[7] = pt(0.47, 0.47); // index dip
     lm[5] = pt(0.46, 0.58); // index mcp
-    lm[12] = pt(0.5, 0.68); // middle tip curled
-    lm[10] = pt(0.5, 0.55); // middle pip
-    lm[16] = pt(0.56, 0.68); // ring tip curled
-    lm[14] = pt(0.56, 0.55); // ring pip
-    lm[20] = pt(0.62, 0.68); // pinky tip curled
-    lm[18] = pt(0.62, 0.55); // pinky pip
+    lm[12] = pt(0.5, 0.28); // middle tip up
+    lm[10] = pt(0.5, 0.48); // middle pip
+    lm[9] = pt(0.5, 0.62); // middle mcp
+    lm[16] = pt(0.56, 0.28); // ring tip up
+    lm[14] = pt(0.56, 0.48); // ring pip
+    lm[13] = pt(0.56, 0.62); // ring mcp
+    lm[20] = pt(0.62, 0.28); // pinky tip up
+    lm[18] = pt(0.62, 0.48); // pinky pip
+    lm[17] = pt(0.62, 0.62); // pinky mcp
   }
   return lm; // landmarks
 }
@@ -66,15 +69,37 @@ function mockCrossedArms() {
   return [left, right]; // both hands
 }
 
+// Mock two hands covering mouth (like screenshot, both sides)
+function mockCoverMouth() {
+  const make = (ox) => {
+    const h = mockHand({ thumb: "up", index: "up", middle: "up", ring: "up", pinky: "up" }); // flat open
+    h[0] = pt(0.50 + ox, 0.48, 0.0); // wrist near face
+    h[5] = pt(0.44 + ox, 0.36, -0.01); // index mcp
+    h[9] = pt(0.50 + ox, 0.34, -0.02); // middle mcp
+    h[13] = pt(0.55 + ox, 0.36, -0.01); // ring mcp
+    h[17] = pt(0.58 + ox, 0.38, 0.0); // pinky mcp
+    h[8] = pt(0.45 + ox, 0.26, 0.01); // index tip up
+    h[12] = pt(0.50 + ox, 0.24, 0.01); // middle tip
+    h[16] = pt(0.54 + ox, 0.26, 0.01); // ring tip
+    h[20] = pt(0.57 + ox, 0.28, 0.01); // pinky tip
+    h[6] = pt(0.44 + ox, 0.31, 0.0); // index pip
+    h[10] = pt(0.50 + ox, 0.29, 0.0); // middle pip
+    h[14] = pt(0.54 + ox, 0.31, 0.0); // ring pip
+    h[18] = pt(0.57 + ox, 0.33, 0.0); // pinky pip
+    return h; // one cover hand
+  };
+  return [make(-0.08), make(0.08)]; // left + right near mouth
+}
+
 // Cases: names match image filenames
 const cases = [
-  { name: "ok", state: { special: "ok", thumb: "up", index: "down", middle: "down", ring: "down", pinky: "down" }, expect: "ok" }, // OK
+  { name: "ok", state: { special: "ok", thumb: "up", index: "down", middle: "up", ring: "up", pinky: "up" }, expect: "ok" }, // OK
   { name: "biye", state: { thumb: "down", index: "up", middle: "up", ring: "down", pinky: "down" }, expect: "peace" }, // peace
   { name: "dianzan", state: { thumb: "up", index: "down", middle: "down", ring: "down", pinky: "down" }, expect: "thumbs" }, // thumbs
   { name: "quan", state: { thumb: "down", index: "down", middle: "down", ring: "down", pinky: "down" }, expect: "fist" }, // fist
-  { name: "cross", state: null, expect: "cross", multi: true }, // crossed arms
+  { name: "cross", state: null, expect: "cross", multi: "cross" }, // crossed arms
   { name: "6", state: { thumb: "up", index: "down", middle: "down", ring: "down", pinky: "up" }, expect: "six" }, // six
-  { name: "cover", state: { thumb: "down", index: "up", middle: "down", ring: "down", pinky: "down", special: "cover" }, expect: "cover" }, // cover
+  { name: "cover", state: null, expect: "cover", multi: "cover" }, // two-hand cover mouth
 ];
 
 let pass = 0; // pass count
@@ -85,19 +110,14 @@ console.log("|------|--------|-----|--------|");
 
 cases.forEach((c) => {
   let result = null; // detect result
-  if (c.multi) {
-    const hands = mockCrossedArms(); // two hands
-    result = detectBuiltinGesture(hands[0], hands); // cross
+  if (c.multi === "cross") {
+    const hands = mockCrossedArms(); // two hands cross
+    result = detectBuiltinGesture(hands[0], hands); // detect
+  } else if (c.multi === "cover") {
+    const hands = mockCoverMouth(); // two hands cover
+    result = detectBuiltinGesture(hands[0], hands); // detect
   } else {
-    let state = { ...c.state }; // copy
-    const lm = mockHand(state); // mock
-    if (c.state.special === "cover") {
-      // Raise whole hand so index tip is near face, only index extended
-      lm[0] = pt(0.5, 0.55); // wrist higher
-      lm[8] = pt(0.48, 0.30); // index tip near face
-      lm[6] = pt(0.47, 0.40); // index pip
-      lm[5] = pt(0.46, 0.48); // index mcp
-    }
+    const lm = mockHand({ ...c.state }); // mock single
     result = detectBuiltinGesture(lm); // single hand
   }
   const got = result?.id || "(null)"; // actual id

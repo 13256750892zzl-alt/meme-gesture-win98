@@ -35,28 +35,28 @@ body {
 
 /* 单个桌面图标按钮 */
 .desktop-icon {
-  width: 76px; /* 图标区域宽度 */
-  padding: 6px 4px; /* 内边距 */
+  width: 78px; /* 图标区域宽度 */
+  padding: 8px 4px 6px; /* 内边距 */
   border: 1px solid transparent; /* 默认透明边框 */
   background: transparent; /* 透明背景 */
   color: #fff; /* 白色文字 */
-  text-shadow: 1px 1px 0 #000, -1px 0 0 #000, 0 1px 0 #000; /* 文字描边 */
+  text-shadow: 1px 1px 0 #000; /* 文字描边 */
   cursor: pointer; /* 手型光标 */
   display: flex; /* 弹性布局 */
   flex-direction: column; /* 纵向排列 */
   align-items: center; /* 水平居中 */
-  gap: 4px; /* 间距 */
+  gap: 6px; /* 图文间距 */
 }
 
 /* 桌面图标图片 */
 .icon-img {
-  width: 32px; /* 图标宽 */
-  height: 32px; /* 图标高 */
+  width: 36px; /* 图标宽 */
+  height: 36px; /* 图标高 */
   display: block; /* 块级 */
-  image-rendering: pixelated; /* 像素风格 */
-  image-rendering: crisp-edges; /* 清晰边缘 */
-  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.5)); /* 轻微阴影 */
+  object-fit: contain; /* 完整显示 */
+  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.45)); /* 轻微阴影 */
   pointer-events: none; /* 不拦截点击 */
+  flex-shrink: 0; /* 不被压缩 */
 }
 
 /* 桌面图标悬停/选中态 */
@@ -69,11 +69,13 @@ body {
 
 /* 图标标签文字 */
 .icon-label {
-  font-size: 12px; /* 字号 */
-  line-height: 1.25; /* 行高 */
+  font-size: 11px; /* 字号 */
+  line-height: 1.2; /* 行高 */
   text-align: center; /* 居中 */
-  max-width: 72px; /* 最大宽度 */
-  word-break: break-all; /* 长词换行 */
+  max-width: 74px; /* 最大宽度 */
+  white-space: normal; /* 允许换行 */
+  word-break: keep-all; /* 中文尽量不拆字 */
+  overflow-wrap: break-word; /* 过长才断行 */
 }
 
 /* 摄像头状态文字 */

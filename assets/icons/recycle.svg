@@ -1,12 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <!-- Þ6Ùv« -->
-  <path d="M8 10 L24 10 L22 28 L10 28 Z" fill="#c0c0c0" stroke="#000" stroke-width="1"/>
-  <!-- vÖ -->
-  <rect x="6" y="8" width="20" height="3" fill="#808080" stroke="#000"/>
-  <!-- Öa -->
-  <line x1="12" y1="12" x2="11" y2="26" stroke="#666" stroke-width="1"/>
-  <line x1="16" y1="12" x2="16" y2="26" stroke="#666" stroke-width="1"/>
-  <line x1="20" y1="12" x2="21" y2="26" stroke="#666" stroke-width="1"/>
-  <!-- Þ6&÷ -->
-  <path d="M14 18 L16 16 L18 18 L16 20 Z" fill="#006600"/>
+  <!-- ??????? -->
+  <rect x="7" y="9" width="18" height="3" rx="0.5" fill="#9e9e9e" stroke="#000"/>
+  <rect x="13" y="6" width="6" height="3" rx="0.5" fill="#bdbdbd" stroke="#000"/>
+  <path d="M9 12 L11 27 L21 27 L23 12 Z" fill="#cfd8dc" stroke="#000"/>
+  <path d="M9 12 L23 12 L22.2 15 L9.8 15 Z" fill="#eceff1"/>
+  <line x1="13" y1="14" x2="12.2" y2="25" stroke="#607d8b" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="16" y1="14" x2="16" y2="25" stroke="#607d8b" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="19" y1="14" x2="19.8" y2="25" stroke="#607d8b" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M14.5 18 L16 16.5 L17.5 18 L16 19.5 Z" fill="#2e7d32" stroke="#1b5e20" stroke-width="0.5"/>
 </svg>
