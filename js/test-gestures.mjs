@@ -58,42 +58,78 @@ function mockHand(fingerState) {
   return lm; // landmarks
 }
 
-// Mock two hands crossing at the chest
+// Mock two hands crossing at the chest (open flat hands, X shape)
 function mockCrossedArms() {
-  const left = mockHand({ thumb: "up", index: "up", middle: "up", ring: "up", pinky: "up" }); // left open
-  const right = mockHand({ thumb: "up", index: "up", middle: "up", ring: "up", pinky: "up" }); // right open
-  left[0] = pt(0.62, 0.55); // left wrist on right side
-  left[9] = pt(0.38, 0.48); // left palm on left side
-  right[0] = pt(0.38, 0.58); // right wrist on left side
-  right[9] = pt(0.62, 0.5); // right palm on right side
-  return [left, right]; // both hands
+  const left = mockHand({ thumb: "up", index: "up", middle: "up", ring: "up", pinky: "up" }); // 左平掌
+  const right = mockHand({ thumb: "up", index: "up", middle: "up", ring: "up", pinky: "up" }); // 右平掌
+  left[0] = pt(0.62, 0.58); // 左腕偏右
+  left[5] = pt(0.48, 0.48); // 左食指根向左上
+  left[9] = pt(0.42, 0.46); // 左掌向左上
+  left[13] = pt(0.40, 0.48); // 左无名指根
+  left[17] = pt(0.38, 0.50); // 左小指根
+  left[8] = pt(0.36, 0.34); // 左食指尖斜上
+  left[12] = pt(0.34, 0.32); // 左中指尖斜上
+  left[16] = pt(0.33, 0.34); // 左无名指尖
+  left[20] = pt(0.32, 0.36); // 左小指尖
+  right[0] = pt(0.38, 0.58); // 右腕偏左
+  right[5] = pt(0.52, 0.48); // 右食指根向右上
+  right[9] = pt(0.58, 0.46); // 右掌向右上
+  right[13] = pt(0.60, 0.48); // 右无名指根
+  right[17] = pt(0.62, 0.50); // 右小指根
+  right[8] = pt(0.64, 0.34); // 右食指尖斜上
+  right[12] = pt(0.66, 0.32); // 右中指尖斜上
+  right[16] = pt(0.67, 0.34); // 右无名指尖
+  right[20] = pt(0.68, 0.36); // 右小指尖
+  return [left, right]; // 达咩式交叉
 }
 
-// Mock folded arms: wrists apart, palms closer (no perfect segment cross)
+// Mock dame X with slightly uneven height (open flat hands)
 function mockFoldedArms() {
-  const left = mockHand({ thumb: "down", index: "down", middle: "down", ring: "down", pinky: "down" }); // 左拳
-  const right = mockHand({ thumb: "down", index: "down", middle: "down", ring: "down", pinky: "down" }); // 右拳
-  left[0] = pt(0.68, 0.52); // 左腕偏右
-  left[5] = pt(0.48, 0.50); // 左食指根向内
-  left[9] = pt(0.46, 0.49); // 左掌心靠中
-  left[12] = pt(0.44, 0.48); // 左中指尖
-  right[0] = pt(0.30, 0.54); // 右腕偏左
-  right[5] = pt(0.50, 0.51); // 右食指根向内
-  right[9] = pt(0.52, 0.50); // 右掌心靠中
-  right[12] = pt(0.54, 0.49); // 右中指尖
-  return [left, right]; // 向内折叠交叉
+  const left = mockHand({ thumb: "up", index: "up", middle: "up", ring: "up", pinky: "up" }); // 左平掌
+  const right = mockHand({ thumb: "up", index: "up", middle: "up", ring: "up", pinky: "up" }); // 右平掌
+  left[0] = pt(0.64, 0.52); // 左腕偏右略高
+  left[5] = pt(0.50, 0.46); // 左食指根
+  left[9] = pt(0.44, 0.44); // 左中指根
+  left[13] = pt(0.42, 0.46); // 左无名指根
+  left[17] = pt(0.40, 0.48); // 左小指根
+  left[8] = pt(0.38, 0.30); // 左指尖斜上
+  left[12] = pt(0.36, 0.28); // 左中指尖
+  left[16] = pt(0.35, 0.30); // 左无名指尖
+  left[20] = pt(0.34, 0.32); // 左小指尖
+  right[0] = pt(0.36, 0.60); // 右腕偏左略低
+  right[5] = pt(0.50, 0.50); // 右食指根
+  right[9] = pt(0.56, 0.48); // 右中指根
+  right[13] = pt(0.58, 0.50); // 右无名指根
+  right[17] = pt(0.60, 0.52); // 右小指根
+  right[8] = pt(0.62, 0.36); // 右指尖斜上
+  right[12] = pt(0.64, 0.34); // 右中指尖
+  right[16] = pt(0.65, 0.36); // 右无名指尖
+  right[20] = pt(0.66, 0.38); // 右小指尖
+  return [left, right]; // 高低差达咩交叉
 }
 
-// Mock slightly uneven height cross (common real pose)
+// Mock slightly uneven height cross (open hands X)
 function mockUnevenCross() {
   const left = mockHand({ thumb: "up", index: "up", middle: "up", ring: "up", pinky: "up" }); // 左手
   const right = mockHand({ thumb: "up", index: "up", middle: "up", ring: "up", pinky: "up" }); // 右手
   left[0] = pt(0.66, 0.42); // 左腕较高偏右
-  left[9] = pt(0.40, 0.50); // 左掌向左下
-  left[12] = pt(0.36, 0.52); // 左指尖
+  left[5] = pt(0.48, 0.46); // 左食指根
+  left[9] = pt(0.40, 0.48); // 左掌向左下
+  left[13] = pt(0.38, 0.50); // 左无名指根
+  left[17] = pt(0.36, 0.52); // 左小指根
+  left[8] = pt(0.34, 0.36); // 左指尖
+  left[12] = pt(0.32, 0.34); // 左中指尖
+  left[16] = pt(0.31, 0.36); // 左无名指尖
+  left[20] = pt(0.30, 0.38); // 左小指尖
   right[0] = pt(0.34, 0.62); // 右腕较低偏左
+  right[5] = pt(0.50, 0.50); // 右食指根
   right[9] = pt(0.58, 0.48); // 右掌向右上
-  right[12] = pt(0.62, 0.46); // 右指尖
+  right[13] = pt(0.60, 0.50); // 右无名指根
+  right[17] = pt(0.62, 0.52); // 右小指根
+  right[8] = pt(0.64, 0.36); // 右指尖
+  right[12] = pt(0.66, 0.34); // 右中指尖
+  right[16] = pt(0.67, 0.36); // 右无名指尖
+  right[20] = pt(0.68, 0.38); // 右小指尖
   return [left, right]; // 高低差交叉
 }
 
