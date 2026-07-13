@@ -3,10 +3,10 @@ export const BUILTIN_GESTURES = [
   { id: "ok", name: "ok", image: "assets/memes/ok.jpg", type: "builtin", hint: "拇指与食指围成圈，中指无名指小指竖起" }, // OK 手势
   { id: "peace", name: "比耶", image: "assets/memes/比耶.jpg", type: "builtin", hint: "食指+中指伸直，无名指小指收拢" }, // 比耶
   { id: "thumbs", name: "点赞", image: "assets/memes/点赞.jpg", type: "builtin", hint: "只有拇指朝上，其余收拢" }, // 点赞
-  { id: "fist", name: "攥拳", image: "assets/memes/攥拳.jpg", type: "builtin", hint: "五指全部收拢成拳" }, // 攥拳
+  { id: "fist", name: "攥拳", image: "assets/memes/攥拳.jpg", type: "builtin", hint: "五指全部收拢成拳（拇指也收在拳侧）" }, // 攥拳
   { id: "cross", name: "交叉手臂", image: "assets/memes/交叉手臂.jpg", type: "builtin", hint: "两只手臂在胸前交叉成 X" }, // 交叉手臂
   { id: "six", name: "6", image: "assets/memes/6.jpg", type: "builtin", hint: "拇指+小指伸出，其余收拢" }, // 比六
-  { id: "heart", name: "比心", image: "assets/memes/比心.jpg", type: "builtin", hint: "拇指与食指尖贴近成心，其余三指收拢" }, // 比心
+  { id: "heart", name: "比心", image: "assets/memes/比心.jpg", type: "builtin", hint: "大拇指和食指伸出来，指尖贴近比成心形，其余三指收拢" }, // 比心
   { id: "think", name: "思考", image: "assets/memes/思考.jpg", type: "builtin", hint: "拇指+食指伸出成 V 托下巴，其余三指收拢" }, // 思考
 ];
 
@@ -69,12 +69,54 @@ function fingerStates(lm) {
   }; // 返回状态对象
 }
 
-// 比心：拇指尖与食指尖贴近成心形，中指/无名指/小指收拢（如图）
-function isFingerHeart(f, thumbIndexDist, handSize) {
-  const tipsClose = thumbIndexDist < Math.max(0.055, handSize * 0.42); // 指尖贴近（与 OK 成圈同阈值）
-  if (!tipsClose) return false; // 未成心
+// 比心：大拇指和食指伸出来，指尖贴近成心；中指/无名指/小指收拢（与攥拳严格区分）
+function isFingerHeart(lm, f, thumbIndexDist, handSize) {
   if (f.middle || f.ring || f.pinky) return false; // 其余三指必须收拢（区别于 OK）
+  const tipsClose = thumbIndexDist < Math.max(0.05, handSize * 0.38); // 拇食指尖贴近成心
+  if (!tipsClose) return false; // 未成心
+
+  const thumbTip = lm[4]; // 拇指尖
+  const indexTip = lm[8]; // 食指尖
+  const wrist = lm[0]; // 手腕
+  const palm = palmCenter(lm); // 掌心
+
+  // 拇、食指必须明显「伸出来」（攥拳时指尖贴在拳面，伸出很短）
+  const thumbReach = dist(thumbTip, wrist); // 拇指伸出长度
+  const indexReach = dist(indexTip, wrist); // 食指伸出长度
+  if (thumbReach < handSize * 0.85) return false; // 拇指未真正伸出 → 攥拳
+  if (indexReach < handSize * 0.85) return false; // 食指未真正伸出 → 攥拳
+
+  // 成心交汇点须明显离开掌心（攥拳拇指压在拳面，交汇贴近掌心）
+  const meet = { x: (thumbTip.x + indexTip.x) / 2, y: (thumbTip.y + indexTip.y) / 2 }; // 指尖交汇点
+  if (dist(meet, palm) < handSize * 0.55) return false; // 交汇太近掌心 → 攥拳
+
+  // 拇、食指尖本身也要离开掌心（真正伸出去比心）
+  if (dist(indexTip, palm) < handSize * 0.5) return false; // 食指尖贴掌
+  if (dist(thumbTip, palm) < handSize * 0.5) return false; // 拇指尖贴掌
+
   return true; // 符合比心
+}
+
+// 攥拳：五指全部收拢成拳（拇指也收在拳侧，不伸出比心）
+function isFist(lm, f, handSize) {
+  if (f.index || f.middle || f.ring || f.pinky) return false; // 四指须全部收拢
+
+  const thumbTip = lm[4]; // 拇指尖
+  const indexTip = lm[8]; // 食指尖
+  const wrist = lm[0]; // 手腕
+  const palm = palmCenter(lm); // 掌心
+
+  // 食指尖应收拢贴拳，不能大幅外伸（外伸且碰拇指更像比心）
+  const indexReach = dist(indexTip, wrist); // 食指伸出长度
+  if (indexReach > handSize * 1.15) return false; // 食指伸太远不像攥拳
+
+  // 若拇食指尖贴近且交汇远离掌心，交由比心识别，这里不算攥拳
+  const thumbIndexDist = dist(thumbTip, indexTip); // 拇食指尖距离
+  const meet = { x: (thumbTip.x + indexTip.x) / 2, y: (thumbTip.y + indexTip.y) / 2 }; // 交汇点
+  const tipsClose = thumbIndexDist < Math.max(0.05, handSize * 0.38); // 指尖是否贴近
+  if (tipsClose && dist(meet, palm) >= handSize * 0.55) return false; // 更像比心
+
+  return true; // 符合攥拳
 }
 
 // 思考：拇指+食指伸出成 V 托下巴，其余收拢，指尖不贴合（如图）
@@ -140,8 +182,8 @@ export function detectBuiltinGesture(landmarks, multiHands = null) {
     return BUILTIN_GESTURES.find((g) => g.id === "six"); // 6
   }
 
-  // 比心：拇食指尖贴近成心，其余收拢（优先于点赞，避免误判）
-  if (isFingerHeart(f, thumbIndexDist, handSize)) {
+  // 比心：拇、食指伸出且指尖贴近成心，其余收拢（优先于攥拳/点赞）
+  if (isFingerHeart(landmarks, f, thumbIndexDist, handSize)) {
     return BUILTIN_GESTURES.find((g) => g.id === "heart"); // 比心
   }
 
@@ -155,8 +197,8 @@ export function detectBuiltinGesture(landmarks, multiHands = null) {
     return BUILTIN_GESTURES.find((g) => g.id === "thumbs"); // 点赞
   }
 
-  // 四指全收：攥拳
-  if (!f.index && !f.middle && !f.ring && !f.pinky) {
+  // 攥拳：五指全部收拢成拳（与比心已严格区分）
+  if (isFist(landmarks, f, handSize)) {
     return BUILTIN_GESTURES.find((g) => g.id === "fist"); // 攥拳
   }
 

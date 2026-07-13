@@ -81,6 +81,18 @@ function mockFingerHeart() {
   return h; // landmarks
 }
 
+// Mock fist with thumb wrapped near index knuckles (must NOT be heart)
+function mockFistThumbWrap() {
+  const h = mockHand({ thumb: "down", index: "down", middle: "down", ring: "down", pinky: "down" }); // all curled
+  h[4] = pt(0.46, 0.64); // thumb tip on fist surface near index
+  h[3] = pt(0.42, 0.66); // thumb ip
+  h[8] = pt(0.45, 0.66); // index tip curled near thumb (close tips, but near palm)
+  h[6] = pt(0.44, 0.58); // index pip
+  h[7] = pt(0.44, 0.62); // index dip
+  h[5] = pt(0.44, 0.62); // index mcp
+  return h; // landmarks
+}
+
 // Mock thinking: thumb + index extended as V, others curled
 function mockThinking() {
   const h = mockHand({ thumb: "up", index: "up", middle: "down", ring: "down", pinky: "down" }); // 食拇
@@ -100,6 +112,7 @@ const cases = [
   { name: "biye", state: { thumb: "down", index: "up", middle: "up", ring: "down", pinky: "down" }, expect: "peace" }, // peace
   { name: "dianzan", state: { thumb: "up", index: "down", middle: "down", ring: "down", pinky: "down" }, expect: "thumbs" }, // thumbs
   { name: "quan", state: { thumb: "down", index: "down", middle: "down", ring: "down", pinky: "down" }, expect: "fist" }, // fist
+  { name: "quan-wrap", state: null, expect: "fist", multi: "fist-wrap" }, // fist with thumb on knuckles
   { name: "cross", state: null, expect: "cross", multi: "cross" }, // crossed arms
   { name: "6", state: { thumb: "up", index: "down", middle: "down", ring: "down", pinky: "up" }, expect: "six" }, // six
   { name: "heart", state: null, expect: "heart", multi: "heart" }, // finger heart
@@ -119,6 +132,8 @@ cases.forEach((c) => {
     result = detectBuiltinGesture(hands[0], hands); // detect
   } else if (c.multi === "heart") {
     result = detectBuiltinGesture(mockFingerHeart()); // finger heart
+  } else if (c.multi === "fist-wrap") {
+    result = detectBuiltinGesture(mockFistThumbWrap()); // fist thumb wrap ≠ heart
   } else if (c.multi === "think") {
     result = detectBuiltinGesture(mockThinking()); // thinking
   } else {
