@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <!-- 页面字符编码 -->
+  <meta charset="UTF-8">
+  <!-- 移动端视口设置 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 页面标题 -->
+  <title>表情包变换网站 - Win98 版</title>
+  <!-- 引入 98.css 复古 Windows 样式库 -->
+  <link rel="stylesheet" href="https://unpkg.com/98.css">
+  <!-- 引入自定义样式 -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- 整个桌面容器 -->
+  <div id="desktop" class="desktop">
+    <!-- 左侧桌面图标区域 -->
+    <div class="desktop-icons">
+      <!-- 我的电脑图标 -->
+      <button class="desktop-icon" data-window="computer">
+        <img class="icon-img" src="assets/icons/computer.svg" alt="我的电脑">
+        <span class="icon-label">我的电脑</span>
+      </button>
+      <!-- 表情包图标 -->
+      <button class="desktop-icon" data-window="memes">
+        <img class="icon-img" src="assets/icons/memes.svg" alt="表情包">
+        <span class="icon-label">表情包</span>
+      </button>
+      <!-- 我的表情包图标 -->
+      <button class="desktop-icon" data-window="my-memes">
+        <img class="icon-img" src="assets/icons/folder.svg" alt="我的表情包">
+        <span class="icon-label">我的表情包</span>
+      </button>
+      <!-- 扫雷图标 -->
+      <button class="desktop-icon" data-window="mines">
+        <img class="icon-img" src="assets/icons/mine.svg" alt="扫雷">
+        <span class="icon-label">扫雷</span>
+      </button>
+      <!-- IE 浏览器图标 -->
+      <button class="desktop-icon" data-window="internet">
+        <img class="icon-img" src="assets/icons/ie.svg" alt="IE浏览器">
+        <span class="icon-label">IE 浏览器</span>
+      </button>
+      <!-- 回收站图标 -->
+      <button class="desktop-icon" data-window="recycle">
+        <img class="icon-img" src="assets/icons/recycle.svg" alt="回收站">
+        <span class="icon-label">回收站</span>
+      </button>
+      <!-- 帮助图标 -->
+      <button class="desktop-icon" data-window="help">
+        <img class="icon-img" src="assets/icons/help.svg" alt="帮助">
+        <span class="icon-label">帮助</span>
+      </button>
+      <!-- 摄像头快捷图标 -->
+      <button class="desktop-icon" data-window="webcam">
+        <img class="icon-img" src="assets/icons/webcam.svg" alt="摄像头">
+        <span class="icon-label">摄像头</span>
+      </button>
+    </div>
+
+    <!-- 摄像头窗口 -->
+    <div id="win-webcam" class="app-window hidden" data-title="摄像头">
+      <div class="title-bar">
+        <div class="title-bar-text">📷 摄像头</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="btn-minimize"></button>
+          <button aria-label="Maximize" class="btn-maximize"></button>
+          <button aria-label="Close" class="btn-close"></button>
+        </div>
+      </div>
+      <div class="window-body webcam-body">
+        <!-- 视频与画布叠加层 -->
+        <div class="video-wrapper">
+          <!-- 手势识别状态标签 -->
+          <div id="gesture-label" class="gesture-label">等待摄像头...</div>
+          <video id="webcam-video" autoplay playsinline muted></video>
+          <canvas id="webcam-canvas"></canvas>
+        </div>
+        <!-- 摄像头控制按钮 -->
+        <div class="webcam-controls">
+          <button id="btn-start-camera" type="button">开启摄像头</button>
+          <button id="btn-stop-camera" type="button" disabled>关闭摄像头</button>
+          <button id="btn-retry-model" type="button" class="hidden">重试加载 AI</button>
+        </div>
+        <!-- 摄像头状态提示 -->
+        <p id="camera-status" class="camera-status">点击「开启摄像头」并允许浏览器权限</p>
+      </div>
+    </div>
+
+    <!-- 表情包展示窗口 -->
+    <div id="win-memes" class="app-window hidden" data-title="表情包">
+      <div class="title-bar">
+        <div class="title-bar-text">😂 表情包</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="btn-minimize"></button>
+          <button aria-label="Maximize" class="btn-maximize"></button>
+          <button aria-label="Close" class="btn-close"></button>
+        </div>
+      </div>
+      <div class="window-body meme-body">
+        <!-- 默认提示文字 -->
+        <div id="meme-placeholder" class="meme-placeholder">
+          <p>对着摄像头比手势试试</p>
+          <p>匹配到的表情包会出现在这里</p>
+        </div>
+        <!-- 匹配到的表情包图片 -->
+        <img id="meme-image" class="meme-image hidden" alt="匹配的表情包">
+        <!-- 当前匹配的手势名称 -->
+        <p id="meme-gesture-name" class="meme-gesture-name"></p>
+      </div>
+    </div>
+
+    <!-- 我的表情包（训练）窗口 -->
+    <div id="win-my-memes" class="app-window hidden" data-title="我的表情包">
+      <div class="title-bar">
+        <div class="title-bar-text">📁 我的表情包</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="btn-minimize"></button>
+          <button aria-label="Maximize" class="btn-maximize"></button>
+          <button aria-label="Close" class="btn-close"></button>
+        </div>
+      </div>
+      <div class="window-body train-body">
+        <!-- 训练表单 -->
+        <fieldset>
+          <legend>训练新手势</legend>
+          <label>手势名称</label>
+          <input id="train-name" type="text" placeholder="例如：OK、举手、捂嘴">
+          <label>绑定表情包图片</label>
+          <input id="train-image" type="file" accept="image/*">
+          <div class="train-preview">
+            <img id="train-preview-img" class="hidden" alt="预览">
+          </div>
+          <div class="train-actions">
+            <button id="btn-record-gesture" type="button">📹 录制手势 (3秒)</button>
+            <button id="btn-save-gesture" type="button" disabled>💾 保存</button>
+          </div>
+          <p id="train-status" class="train-status">请先开启摄像头，再录制手势</p>
+        </fieldset>
+        <!-- 已保存的手势列表 -->
+        <fieldset>
+          <legend>已保存的手势</legend>
+          <ul id="gesture-list" class="gesture-list"></ul>
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- 扫雷窗口 -->
+    <div id="win-mines" class="app-window hidden" data-title="扫雷">
+      <div class="title-bar">
+        <div class="title-bar-text">💣 扫雷</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="btn-minimize"></button>
+          <button aria-label="Maximize" class="btn-maximize"></button>
+          <button aria-label="Close" class="btn-close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <p class="mines-tip">经典扫雷小游戏 — 左键翻开，右键标记 💣</p>
+        <div id="minesweeper" class="minesweeper"></div>
+        <p id="mines-status" class="mines-status">剩余雷数: 10</p>
+      </div>
+    </div>
+
+    <!-- 我的电脑窗口 -->
+    <div id="win-computer" class="app-window hidden" data-title="我的电脑">
+      <div class="title-bar">
+        <div class="title-bar-text">🖥️ 我的电脑</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="btn-minimize"></button>
+          <button aria-label="Maximize" class="btn-maximize"></button>
+          <button aria-label="Close" class="btn-close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <p>📂 C:\MemeOS</p>
+        <p>📂 D:\表情包库</p>
+        <p>💾 本地存储: <span id="storage-info">0</span> 个手势</p>
+        <button id="btn-export" type="button">导出数据</button>
+        <button id="btn-import" type="button">导入数据</button>
+        <input id="import-file" type="file" accept=".json" class="hidden">
+      </div>
+    </div>
+
+    <!-- IE 浏览器窗口 -->
+    <div id="win-internet" class="app-window hidden" data-title="IE 浏览器">
+      <div class="title-bar">
+        <div class="title-bar-text">🌐 Internet Explorer</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="btn-minimize"></button>
+          <button aria-label="Maximize" class="btn-maximize"></button>
+          <button aria-label="Close" class="btn-close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <p>正在连接到表情包宇宙...</p>
+        <p>404 - 此页面太抽象了，无法访问 😂</p>
+      </div>
+    </div>
+
+    <!-- 回收站窗口 -->
+    <div id="win-recycle" class="app-window hidden" data-title="回收站">
+      <div class="title-bar">
+        <div class="title-bar-text">🗑️ 回收站</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="btn-minimize"></button>
+          <button aria-label="Maximize" class="btn-maximize"></button>
+          <button aria-label="Close" class="btn-close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <p>回收站是空的 — 你的抽象表情包都很安全 ✨</p>
+      </div>
+    </div>
+
+    <!-- 帮助窗口 -->
+    <div id="win-help" class="app-window hidden" data-title="帮助">
+      <div class="title-bar">
+        <div class="title-bar-text">❓ 帮助</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="btn-minimize"></button>
+          <button aria-label="Maximize" class="btn-maximize"></button>
+          <button aria-label="Close" class="btn-close"></button>
+        </div>
+      </div>
+      <div class="window-body help-body">
+        <p>这就是一个无用且抽象的小玩意，我做的还挺开心的哈哈哈哈哈哈</p>
+        <p>喜欢的可以 follow me for more inspo 哦!</p>
+        <hr>
+        <h4>使用步骤：</h4>
+        <ol>
+          <li>打开「摄像头」窗口，点击开启摄像头</li>
+          <li>对着镜头比下方手势，保持 1～2 秒</li>
+          <li>「表情包」窗口会自动弹出并显示图片</li>
+          <li>也可在「我的表情包」里录制自定义手势</li>
+        </ol>
+        <h4>内置手势对照表（共 7 个）：</h4>
+        <div id="gesture-guide-table"></div>
+      </div>
+    </div>
+
+    <!-- 底部任务栏 -->
+    <div class="taskbar">
+      <!-- 开始按钮 -->
+      <button id="btn-start" class="start-button" type="button">
+        <span class="start-logo"></span>
+        开始
+      </button>
+      <!-- 活动窗口按钮容器 -->
+      <div id="taskbar-apps" class="taskbar-apps"></div>
+      <!-- 系统托盘 -->
+      <div class="system-tray">
+        <span id="clock">12:00</span>
+      </div>
+    </div>
+
+    <!-- 开始菜单 -->
+    <div id="start-menu" class="start-menu hidden">
+      <button data-window="webcam">📷 摄像头</button>
+      <button data-window="memes">😂 表情包</button>
+      <button data-window="my-memes">📁 我的表情包</button>
+      <button data-window="mines">💣 扫雷</button>
+      <button data-window="help">❓ 帮助</button>
+    </div>
+
+    <!-- Clippy 小助手 -->
+    <div id="clippy" class="clippy" title="我是 Clippy！">
+      <div class="clippy-bubble hidden" id="clippy-bubble">
+        看起来你在做抽象表情包？需要帮忙吗？
+      </div>
+      <span class="clippy-icon">📎</span>
+    </div>
+
+    <!-- Win98 风格错误弹窗 -->
+    <div id="msg-overlay" class="msg-overlay hidden">
+      <div class="msg-box window">
+        <div class="title-bar">
+          <div class="title-bar-text">⚠️ 提示</div>
+        </div>
+        <div class="window-body msg-body">
+          <p id="msg-text">发生错误</p>
+          <div class="msg-actions">
+            <button id="msg-ok" type="button">确定</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主逻辑脚本（ES Module） -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

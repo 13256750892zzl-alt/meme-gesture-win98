@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- f,b -->
+  <rect x="6" y="6" width="20" height="22" fill="#9966cc" stroke="#000" stroke-width="1"/>
+  <!-- fu -->
+  <rect x="8" y="8" width="16" height="18" fill="#fff" stroke="#666"/>
+  <!-- оч -->
+  <text x="16" y="20" text-anchor="middle" font-size="14" font-weight="bold" fill="#0000aa" font-family="Arial">?</text>
+</svg>

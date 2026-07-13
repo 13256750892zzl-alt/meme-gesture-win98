@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- ‡ö9;S -->
+  <path d="M4 10 L12 10 L14 8 L28 8 L28 26 L4 26 Z" fill="#ffcc00" stroke="#000" stroke-width="1"/>
+  <!-- ‡ö9~ -->
+  <path d="M4 10 L12 10 L14 8 L20 8 L20 10 Z" fill="#ffe066" stroke="#000" stroke-width="1"/>
+  <!-- ‡ö -->
+  <rect x="8" y="14" width="8" height="10" fill="#fff" stroke="#666"/>
+  <rect x="18" y="16" width="6" height="8" fill="#fff" stroke="#666"/>
+</svg>

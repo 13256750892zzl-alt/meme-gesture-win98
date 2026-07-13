@@ -1,0 +1,10 @@
+{
+  "name": "meme-gesture-win98",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Win98 style meme gesture website",
+  "scripts": {
+    "start": "npx --yes serve . -p 5173",
+    "dev": "npx --yes serve . -p 5173"
+  }
+}

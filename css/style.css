@@ -1,0 +1,555 @@
+/* 全局重置与基础字体 */
+* {
+  box-sizing: border-box; /* 统一盒模型 */
+}
+
+html,
+body {
+  margin: 0; /* 清除默认外边距 */
+  padding: 0; /* 清除默认内边距 */
+  width: 100%; /* 占满宽度 */
+  height: 100%; /* 占满高度 */
+  overflow: hidden; /* 禁止页面滚动 */
+  font-family: "MS Sans Serif", "Microsoft Sans Serif", Tahoma, sans-serif; /* 复古字体 */
+}
+
+/* 桌面背景 */
+.desktop {
+  position: relative; /* 作为绝对定位子元素的参照 */
+  width: 100vw; /* 视口宽度 */
+  height: 100vh; /* 视口高度 */
+  background: #008080; /* Win98 经典青色桌面 */
+  user-select: none; /* 禁止文本选中 */
+}
+
+/* 桌面图标列 */
+.desktop-icons {
+  position: absolute; /* 固定在桌面左侧 */
+  top: 12px; /* 顶部间距 */
+  left: 8px; /* 左侧间距 */
+  display: flex; /* 弹性布局 */
+  flex-direction: column; /* 纵向排列 */
+  gap: 8px; /* 图标间距 */
+  z-index: 1; /* 层级低于窗口 */
+}
+
+/* 单个桌面图标按钮 */
+.desktop-icon {
+  width: 76px; /* 图标区域宽度 */
+  padding: 6px 4px; /* 内边距 */
+  border: 1px solid transparent; /* 默认透明边框 */
+  background: transparent; /* 透明背景 */
+  color: #fff; /* 白色文字 */
+  text-shadow: 1px 1px 0 #000, -1px 0 0 #000, 0 1px 0 #000; /* 文字描边 */
+  cursor: pointer; /* 手型光标 */
+  display: flex; /* 弹性布局 */
+  flex-direction: column; /* 纵向排列 */
+  align-items: center; /* 水平居中 */
+  gap: 4px; /* 间距 */
+}
+
+/* 桌面图标图片 */
+.icon-img {
+  width: 32px; /* 图标宽 */
+  height: 32px; /* 图标高 */
+  display: block; /* 块级 */
+  image-rendering: pixelated; /* 像素风格 */
+  image-rendering: crisp-edges; /* 清晰边缘 */
+  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.5)); /* 轻微阴影 */
+  pointer-events: none; /* 不拦截点击 */
+}
+
+/* 桌面图标悬停/选中态 */
+.desktop-icon:hover,
+.desktop-icon:focus {
+  border: 1px dotted #fff; /* 虚线边框 */
+  background: rgba(0, 0, 128, 0.35); /* 半透明蓝色背景 */
+  outline: none; /* 去掉焦点轮廓 */
+}
+
+/* 图标标签文字 */
+.icon-label {
+  font-size: 12px; /* 字号 */
+  line-height: 1.25; /* 行高 */
+  text-align: center; /* 居中 */
+  max-width: 72px; /* 最大宽度 */
+  word-break: break-all; /* 长词换行 */
+}
+
+/* 摄像头状态文字 */
+.camera-status {
+  margin: 8px 0 0; /* 外边距 */
+  font-size: 12px; /* 字号 */
+  color: #333; /* 颜色 */
+  min-height: 16px; /* 最小高度 */
+}
+
+/* Win98 错误弹窗遮罩 */
+.msg-overlay {
+  position: fixed; /* 固定全屏 */
+  inset: 0; /* 四边贴齐 */
+  background: rgba(0, 0, 0, 0.25); /* 半透明遮罩 */
+  display: flex; /* 居中 */
+  align-items: center; /* 垂直居中 */
+  justify-content: center; /* 水平居中 */
+  z-index: 9999; /* 最顶层 */
+}
+
+/* 弹窗内容区 */
+.msg-body {
+  min-width: 320px; /* 最小宽度 */
+  max-width: 420px; /* 最大宽度 */
+}
+
+/* 弹窗按钮区 */
+.msg-actions {
+  margin-top: 12px; /* 顶部间距 */
+  text-align: center; /* 居中 */
+}
+
+/* 应用窗口通用样式 */
+.app-window {
+  position: absolute; /* 可拖拽定位 */
+  min-width: 320px; /* 最小宽度 */
+  max-width: 90vw; /* 最大宽度 */
+  z-index: 10; /* 默认窗口层级 */
+  resize: both; /* 允许调整大小 */
+  overflow: auto; /* 内容溢出滚动 */
+}
+
+/* 各窗口初始位置（避免重叠） */
+#win-webcam { top: 40px; left: 100px; }
+#win-memes { top: 80px; left: 520px; }
+#win-my-memes { top: 60px; left: 200px; }
+#win-mines { top: 100px; left: 280px; }
+#win-computer { top: 50px; left: 150px; }
+#win-internet { top: 70px; left: 220px; }
+#win-recycle { top: 90px; left: 180px; }
+#win-help { top: 50px; left: 300px; }
+
+/* 隐藏窗口 */
+.app-window.hidden {
+  display: none; /* 不显示 */
+}
+
+/* 最小化窗口 */
+.app-window.minimized {
+  display: none; /* 最小化后隐藏 */
+}
+
+/* 窗口激活态 */
+.app-window.active {
+  z-index: 100; /* 置顶显示 */
+}
+
+/* 窗口标题栏可拖拽光标 */
+.app-window .title-bar {
+  cursor: move; /* 移动光标 */
+}
+
+/* 摄像头区域 */
+.webcam-body {
+  width: 480px; /* 固定宽度 */
+  padding: 8px; /* 内边距 */
+  position: relative; /* 作为标签定位参照 */
+}
+
+/* 视频容器 */
+.video-wrapper {
+  position: relative; /* 画布叠加参照 */
+  width: 100%; /* 占满宽度 */
+  aspect-ratio: 4 / 3; /* 4:3 比例 */
+  background: #1a1a2e; /* 深色背景 */
+  border: 2px inset #808080; /* 内凹边框 */
+  overflow: hidden; /* 裁剪溢出 */
+}
+
+/* 摄像头未开启时的占位 */
+.video-wrapper::before {
+  content: "📷"; /* 相机 emoji */
+  position: absolute; /* 居中 */
+  inset: 0; /* 铺满 */
+  display: flex; /* 弹性 */
+  align-items: center; /* 垂直居中 */
+  justify-content: center; /* 水平居中 */
+  font-size: 48px; /* 大号 */
+  opacity: 0.3; /* 半透明 */
+  pointer-events: none; /* 不拦截 */
+  z-index: 0; /* 底层 */
+}
+
+/* 摄像头视频元素 */
+#webcam-video {
+  width: 100%; /* 占满宽度 */
+  height: 100%; /* 占满高度 */
+  object-fit: cover; /* 裁剪填充 */
+  transform: scaleX(-1); /* 镜像翻转 */
+}
+
+/* 手势追踪画布 */
+#webcam-canvas {
+  position: absolute; /* 覆盖在视频上 */
+  top: 0; /* 顶部对齐 */
+  left: 0; /* 左侧对齐 */
+  width: 100%; /* 占满宽度 */
+  height: 100%; /* 占满高度 */
+  pointer-events: none; /* 不拦截鼠标 */
+  transform: scaleX(-1); /* 与视频同步镜像 */
+}
+
+/* 手势标签 */
+.gesture-label {
+  position: absolute; /* 浮在视频左上角 */
+  top: 16px; /* 距顶部 */
+  left: 16px; /* 距左侧 */
+  z-index: 2; /* 高于画布 */
+  background: rgba(0, 0, 0, 0.75); /* 半透明黑底 */
+  color: #0f0; /* 绿色文字 */
+  padding: 4px 8px; /* 内边距 */
+  font-size: 14px; /* 字号 */
+  font-weight: bold; /* 加粗 */
+  border: 1px solid #0f0; /* 绿色边框 */
+}
+
+/* 摄像头控制按钮区 */
+.webcam-controls {
+  margin-top: 8px; /* 顶部间距 */
+  display: flex; /* 横向排列 */
+  gap: 8px; /* 按钮间距 */
+}
+
+/* 表情包展示区域 */
+.meme-body {
+  width: 420px; /* 窗口宽度 */
+  min-height: 320px; /* 最小高度 */
+  display: flex; /* 弹性布局 */
+  flex-direction: column; /* 纵向排列 */
+  align-items: center; /* 水平居中 */
+  justify-content: center; /* 垂直居中 */
+  text-align: center; /* 文字居中 */
+}
+
+/* 默认占位提示 */
+.meme-placeholder {
+  color: #333; /* 深灰文字 */
+  font-size: 16px; /* 字号 */
+  line-height: 1.6; /* 行高 */
+}
+
+/* 表情包图片 */
+.meme-image {
+  max-width: 100%; /* 不超出容器 */
+  max-height: 280px; /* 限制高度 */
+  object-fit: contain; /* 等比缩放 */
+  border: 2px inset #808080; /* 内凹边框 */
+}
+
+/* 匹配手势名称 */
+.meme-gesture-name {
+  margin-top: 8px; /* 顶部间距 */
+  font-weight: bold; /* 加粗 */
+  color: #000080; /* 深蓝 */
+}
+
+/* 训练窗口 */
+.train-body {
+  width: 420px; /* 窗口宽度 */
+}
+
+/* 训练预览图 */
+.train-preview img {
+  max-width: 120px; /* 预览图宽度 */
+  max-height: 120px; /* 预览图高度 */
+  margin-top: 8px; /* 顶部间距 */
+  border: 2px inset #808080; /* 边框 */
+}
+
+/* 训练按钮区 */
+.train-actions {
+  margin-top: 8px; /* 顶部间距 */
+  display: flex; /* 横向排列 */
+  gap: 8px; /* 间距 */
+  flex-wrap: wrap; /* 换行 */
+}
+
+/* 训练状态文字 */
+.train-status {
+  margin-top: 8px; /* 顶部间距 */
+  color: #333; /* 文字颜色 */
+  font-size: 13px; /* 字号 */
+}
+
+/* 手势列表 */
+.gesture-list {
+  list-style: none; /* 去掉列表符号 */
+  padding: 0; /* 清除内边距 */
+  margin: 0; /* 清除外边距 */
+  max-height: 180px; /* 最大高度 */
+  overflow-y: auto; /* 纵向滚动 */
+}
+
+/* 手势列表项 */
+.gesture-list li {
+  display: flex; /* 弹性布局 */
+  align-items: center; /* 垂直居中 */
+  gap: 8px; /* 间距 */
+  padding: 6px 0; /* 内边距 */
+  border-bottom: 1px solid #ccc; /* 分隔线 */
+  font-size: 13px; /* 字号 */
+}
+
+/* 手势列表缩略图 */
+.gesture-list img {
+  width: 40px; /* 缩略图宽 */
+  height: 40px; /* 缩略图高 */
+  object-fit: cover; /* 裁剪填充 */
+  border: 1px solid #999; /* 边框 */
+}
+
+/* 帮助窗口 */
+.help-body {
+  width: 480px; /* 宽度 */
+  line-height: 1.6; /* 行高 */
+}
+
+/* 帮助窗口手势对照表 */
+.guide-table {
+  width: 100%; /* 全宽 */
+  border-collapse: collapse; /* 合并边框 */
+  font-size: 12px; /* 字号 */
+  margin-top: 8px; /* 间距 */
+}
+
+.guide-table th,
+.guide-table td {
+  border: 1px solid #808080; /* 边框 */
+  padding: 4px 6px; /* 内边距 */
+  vertical-align: middle; /* 垂直居中 */
+}
+
+.guide-table th {
+  background: #000080; /* 蓝色表头 */
+  color: #fff; /* 白字 */
+}
+
+.guide-thumb {
+  width: 48px; /* 缩略图宽 */
+  height: 48px; /* 缩略图高 */
+  object-fit: contain; /* 等比 */
+}
+
+.guide-summary {
+  margin-top: 8px; /* 间距 */
+  font-weight: bold; /* 加粗 */
+}
+
+/* 扫雷棋盘 */
+.minesweeper {
+  display: grid; /* 网格布局 */
+  grid-template-columns: repeat(9, 28px); /* 9 列 */
+  gap: 1px; /* 格子间距 */
+  background: #808080; /* 背景色 */
+  padding: 2px; /* 内边距 */
+  width: fit-content; /* 自适应宽度 */
+}
+
+/* 扫雷格子 */
+.mine-cell {
+  width: 28px; /* 格子宽 */
+  height: 28px; /* 格子高 */
+  border: 2px outset #fff; /* 凸起边框 */
+  background: #c0c0c0; /* 灰色背景 */
+  font-size: 14px; /* 字号 */
+  font-weight: bold; /* 加粗 */
+  cursor: pointer; /* 手型 */
+  display: flex; /* 居中数字 */
+  align-items: center; /* 垂直居中 */
+  justify-content: center; /* 水平居中 */
+}
+
+/* 已翻开的格子 */
+.mine-cell.revealed {
+  border: 1px solid #999; /* 边框 */
+  background: #dcdcdc; /* 浅灰背景 */
+  cursor: default; /* 默认光标 */
+}
+
+/* 标记为雷的格子 */
+.mine-cell.flagged {
+  color: #c00; /* 红色 */
+}
+
+/* 扫雷提示 */
+.mines-tip,
+.mines-status {
+  font-size: 13px; /* 字号 */
+  margin: 6px 0; /* 外边距 */
+}
+
+/* 底部任务栏 */
+.taskbar {
+  position: fixed; /* 固定底部 */
+  bottom: 0; /* 贴底 */
+  left: 0; /* 贴左 */
+  right: 0; /* 贴右 */
+  height: 36px; /* 高度 */
+  background: #c0c0c0; /* 灰色背景 */
+  border-top: 2px solid #fff; /* 顶部高光 */
+  display: flex; /* 弹性布局 */
+  align-items: center; /* 垂直居中 */
+  gap: 4px; /* 间距 */
+  padding: 2px 4px; /* 内边距 */
+  z-index: 1000; /* 最高层级 */
+}
+
+/* 开始按钮 */
+.start-button {
+  display: flex; /* 弹性布局 */
+  align-items: center; /* 垂直居中 */
+  gap: 4px; /* 间距 */
+  font-weight: bold; /* 加粗 */
+  min-width: 72px; /* 最小宽度 */
+}
+
+/* 开始按钮 logo */
+.start-logo {
+  width: 16px; /* 宽度 */
+  height: 16px; /* 高度 */
+  background: url("../assets/icons/win-logo.svg") center/contain no-repeat; /* Win 徽标 */
+  flex-shrink: 0; /* 不压缩 */
+}
+
+/* 任务栏应用按钮区 */
+.taskbar-apps {
+  flex: 1; /* 占据剩余空间 */
+  display: flex; /* 横向排列 */
+  gap: 4px; /* 间距 */
+  overflow-x: auto; /* 横向滚动 */
+}
+
+/* 任务栏单个应用按钮 */
+.taskbar-app {
+  min-width: 100px; /* 最小宽度 */
+  max-width: 160px; /* 最大宽度 */
+  overflow: hidden; /* 隐藏溢出 */
+  text-overflow: ellipsis; /* 省略号 */
+  white-space: nowrap; /* 不换行 */
+}
+
+/* 任务栏按钮激活态 */
+.taskbar-app.active {
+  box-shadow: inset 1px 1px #000, inset -1px -1px #fff; /* 按下效果 */
+}
+
+/* 系统托盘 */
+.system-tray {
+  padding: 0 8px; /* 内边距 */
+  font-size: 12px; /* 字号 */
+  border: 1px inset #808080; /* 内凹边框 */
+  background: #c0c0c0; /* 背景 */
+  line-height: 24px; /* 行高 */
+}
+
+/* 开始菜单 */
+.start-menu {
+  position: fixed; /* 固定定位 */
+  bottom: 38px; /* 任务栏上方 */
+  left: 4px; /* 左侧对齐开始按钮 */
+  width: 200px; /* 宽度 */
+  background: #c0c0c0; /* 背景 */
+  border: 2px outset #fff; /* 凸起边框 */
+  padding: 4px; /* 内边距 */
+  z-index: 1001; /* 高于任务栏 */
+  display: flex; /* 弹性布局 */
+  flex-direction: column; /* 纵向 */
+  gap: 2px; /* 间距 */
+}
+
+/* 开始菜单隐藏 */
+.start-menu.hidden {
+  display: none; /* 不显示 */
+}
+
+/* 开始菜单按钮 */
+.start-menu button {
+  text-align: left; /* 左对齐 */
+  width: 100%; /* 占满宽度 */
+}
+
+/* Clippy 助手 */
+.clippy {
+  position: fixed; /* 固定右下角 */
+  right: 16px; /* 距右侧 */
+  bottom: 48px; /* 任务栏上方 */
+  z-index: 999; /* 层级 */
+  cursor: pointer; /* 可点击 */
+}
+
+/* Clippy 图标 */
+.clippy-icon {
+  font-size: 48px; /* 大号 emoji */
+  filter: drop-shadow(2px 2px 0 #000); /* 阴影 */
+}
+
+/* Clippy 气泡 */
+.clippy-bubble {
+  position: absolute; /* 相对 clippy 定位 */
+  bottom: 56px; /* 在图标上方 */
+  right: 0; /* 右对齐 */
+  width: 220px; /* 宽度 */
+  background: #ffffe1; /* 淡黄背景 */
+  border: 1px solid #000; /* 边框 */
+  padding: 8px; /* 内边距 */
+  font-size: 13px; /* 字号 */
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2); /* 阴影 */
+}
+
+/* Clippy 气泡隐藏 */
+.clippy-bubble.hidden {
+  display: none; /* 不显示 */
+}
+
+/* 通用 hidden 类 */
+.hidden {
+  display: none !important; /* 强制隐藏 */
+}
+
+/* 表单元素间距 */
+fieldset {
+  margin-bottom: 12px; /* 底部间距 */
+}
+
+label {
+  display: block; /* 独占一行 */
+  margin: 6px 0 2px; /* 外边距 */
+  font-size: 13px; /* 字号 */
+}
+
+input[type="text"],
+input[type="file"] {
+  width: 100%; /* 占满宽度 */
+  margin-bottom: 4px; /* 底部间距 */
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .desktop-icons {
+    flex-direction: row; /* 横向排列 */
+    flex-wrap: wrap; /* 换行 */
+    max-width: 100%; /* 限制宽度 */
+  }
+
+  .app-window {
+    left: 8px !important; /* 靠左 */
+    right: 8px; /* 靠右 */
+    width: auto !important; /* 自适应宽度 */
+    max-width: calc(100vw - 16px); /* 留边距 */
+  }
+
+  .webcam-body,
+  .meme-body,
+  .train-body,
+  .help-body {
+    width: 100%; /* 全宽 */
+  }
+}
