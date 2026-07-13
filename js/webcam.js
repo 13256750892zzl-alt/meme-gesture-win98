@@ -74,10 +74,10 @@ export async function initHandLandmarker(onProgress) {
   });
   // 配置参数
   hands.setOptions({
-    maxNumHands: 2, // 最多两只手
+    maxNumHands: 2, // 最多两只手（交叉手臂需要双手）
     modelComplexity: 1, // 模型复杂度
-    minDetectionConfidence: 0.6, // 检测阈值
-    minTrackingConfidence: 0.6, // 跟踪阈值
+    minDetectionConfidence: 0.5, // 略降阈值，交叉时遮挡仍能检出双手
+    minTrackingConfidence: 0.5, // 略降跟踪阈值，减少双手丢帧
   });
   // 注册结果回调
   hands.onResults((results) => {

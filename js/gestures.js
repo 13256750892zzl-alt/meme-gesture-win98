@@ -4,7 +4,7 @@ export const BUILTIN_GESTURES = [
   { id: "peace", name: "比耶", image: "assets/memes/比耶.jpg", type: "builtin", hint: "食指+中指伸直，无名指小指收拢" }, // 比耶
   { id: "thumbs", name: "点赞", image: "assets/memes/点赞.jpg", type: "builtin", hint: "只有拇指朝上，其余收拢" }, // 点赞
   { id: "fist", name: "攥拳", image: "assets/memes/攥拳.jpg", type: "builtin", hint: "五指全部收拢成拳（拇指也收在拳侧）" }, // 攥拳
-  { id: "cross", name: "交叉手臂", image: "assets/memes/交叉手臂.jpg", type: "builtin", hint: "两只手臂在胸前交叉成 X" }, // 交叉手臂
+  { id: "cross", name: "交叉手臂", image: "assets/memes/交叉手臂.jpg", type: "builtin", hint: "两只手臂在胸前交叉成 X（尽量让双手都入镜）" }, // 交叉手臂
   { id: "six", name: "6", image: "assets/memes/6.jpg", type: "builtin", hint: "拇指+小指伸出，其余收拢" }, // 比六
   { id: "heart", name: "比心", image: "assets/memes/比心.jpg", type: "builtin", hint: "大拇指和食指伸出来，指尖贴近比成心形，其余三指收拢" }, // 比心
   { id: "think", name: "思考", image: "assets/memes/思考.jpg", type: "builtin", hint: "拇指+食指伸出成 V 托下巴，其余三指收拢" }, // 思考
@@ -131,23 +131,67 @@ function isThinking(lm, f, thumbIndexDist, handSize) {
   return true; // 符合思考
 }
 
-// 检测交叉手臂：两只手前臂（手腕→中指根）在画面中相交
+// 将线段从起点沿方向延长（用于模拟前臂穿过手掌后的交叉）
+function extendPoint(from, toward, factor) {
+  return {
+    x: from.x + (toward.x - from.x) * factor, // 延长后的 x
+    y: from.y + (toward.y - from.y) * factor, // 延长后的 y
+  }; // 返回延长点
+}
+
+// 检测交叉手臂：胸前双手交叉（放宽多种几何特征，减少漏检）
 function detectCrossedArms(multiHands) {
   if (!multiHands || multiHands.length < 2) return false; // 需要双手
   const a = multiHands[0]; // 第一只手
   const b = multiHands[1]; // 第二只手
   if (!a?.length || !b?.length) return false; // 无效关键点
+
   const wa = a[0]; // 手腕 A
   const wb = b[0]; // 手腕 B
-  const ma = a[9]; // 中指 MCP A（近似前臂末端）
+  const ma = a[9]; // 中指 MCP A
   const mb = b[9]; // 中指 MCP B
-  if (Math.abs(wa.y - wb.y) > 0.28) return false; // 高度差过大则不是胸前交叉
-  if (dist(wa, wb) > 0.5) return false; // 手腕过远
-  // 前臂线段相交，或双手掌心在对方手腕对侧（镜像交叉）
-  if (segmentsIntersect(wa, ma, wb, mb)) return true; // 线段相交
-  const palmsCross = (wa.x - wb.x) * (ma.x - mb.x) < 0; // 手腕与掌心相对位置相反
-  const closeEnough = dist(ma, mb) < 0.35; // 掌心不太远
-  return palmsCross && closeEnough; // 交叉判定
+  const ia = a[5]; // 食指 MCP A（备选前臂端点）
+  const ib = b[5]; // 食指 MCP B
+  const tipA = a[12]; // 中指尖 A（更长线段）
+  const tipB = b[12]; // 中指尖 B
+  const ca = palmCenter(a); // 掌心 A
+  const cb = palmCenter(b); // 掌心 B
+
+  // 高度：允许一只手略高（真实交叉时常有高低差）
+  if (Math.abs(wa.y - wb.y) > 0.42) return false; // 高度差过大
+  // 掌心不应过低（脚边/桌面不算胸前交叉）
+  if ((ma.y + mb.y) / 2 > 0.85) return false; // 平均掌心过低
+  // 手腕距离放宽（远景/手臂张开时仍可能交叉）
+  if (dist(wa, wb) > 0.72) return false; // 手腕过远
+
+  // 1) 多组短/长线段相交：腕→MCP / 腕→指尖
+  if (segmentsIntersect(wa, ma, wb, mb)) return true; // 腕→中指根相交
+  if (segmentsIntersect(wa, tipA, wb, tipB)) return true; // 腕→中指尖相交
+  if (segmentsIntersect(wa, ia, wb, ib)) return true; // 腕→食指根相交
+
+  // 2) 延长前臂射线再判相交（手叠在胸前时短线段常不相交）
+  const ea = extendPoint(wa, ma, 1.8); // 延长前臂 A
+  const eb = extendPoint(wb, mb, 1.8); // 延长前臂 B
+  if (segmentsIntersect(wa, ea, wb, eb)) return true; // 延长线相交
+
+  // 3) 镜像交叉：手腕左右关系与掌心左右关系相反，且掌心不太远
+  const palmsCross = (wa.x - wb.x) * (ma.x - mb.x) < 0; // 腕与掌相对位置相反
+  if (palmsCross && dist(ma, mb) < 0.5) return true; // 经典交叉
+
+  // 4) 向内折叠：手腕横向分开，但掌心比手腕更靠近（抱臂）
+  const wristDx = Math.abs(wa.x - wb.x); // 手腕横向距
+  const palmDx = Math.abs(ma.x - mb.x); // 掌心横向距
+  const similarHeight = Math.abs(wa.y - wb.y) < 0.36; // 高度接近
+  if (wristDx > 0.1 && palmDx < wristDx * 0.9 && dist(ma, mb) < 0.45 && similarHeight) {
+    return true; // 双手向胸前收拢交叉
+  }
+
+  // 5) 双手掌心叠在一起，且手腕明显分居两侧
+  if (dist(ca, cb) < 0.3 && wristDx > 0.12 && similarHeight && palmsCross) {
+    return true; // 紧贴胸前交叉
+  }
+
+  return false; // 未匹配交叉
 }
 
 // 内置手势识别（可传入多只手）

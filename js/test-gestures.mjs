@@ -69,6 +69,34 @@ function mockCrossedArms() {
   return [left, right]; // both hands
 }
 
+// Mock folded arms: wrists apart, palms closer (no perfect segment cross)
+function mockFoldedArms() {
+  const left = mockHand({ thumb: "down", index: "down", middle: "down", ring: "down", pinky: "down" }); // 左拳
+  const right = mockHand({ thumb: "down", index: "down", middle: "down", ring: "down", pinky: "down" }); // 右拳
+  left[0] = pt(0.68, 0.52); // 左腕偏右
+  left[5] = pt(0.48, 0.50); // 左食指根向内
+  left[9] = pt(0.46, 0.49); // 左掌心靠中
+  left[12] = pt(0.44, 0.48); // 左中指尖
+  right[0] = pt(0.30, 0.54); // 右腕偏左
+  right[5] = pt(0.50, 0.51); // 右食指根向内
+  right[9] = pt(0.52, 0.50); // 右掌心靠中
+  right[12] = pt(0.54, 0.49); // 右中指尖
+  return [left, right]; // 向内折叠交叉
+}
+
+// Mock slightly uneven height cross (common real pose)
+function mockUnevenCross() {
+  const left = mockHand({ thumb: "up", index: "up", middle: "up", ring: "up", pinky: "up" }); // 左手
+  const right = mockHand({ thumb: "up", index: "up", middle: "up", ring: "up", pinky: "up" }); // 右手
+  left[0] = pt(0.66, 0.42); // 左腕较高偏右
+  left[9] = pt(0.40, 0.50); // 左掌向左下
+  left[12] = pt(0.36, 0.52); // 左指尖
+  right[0] = pt(0.34, 0.62); // 右腕较低偏左
+  right[9] = pt(0.58, 0.48); // 右掌向右上
+  right[12] = pt(0.62, 0.46); // 右指尖
+  return [left, right]; // 高低差交叉
+}
+
 // Mock finger-heart: thumb tip near index tip, other fingers curled
 function mockFingerHeart() {
   const h = mockHand({ thumb: "up", index: "down", middle: "down", ring: "down", pinky: "down" }); // base curled
@@ -114,6 +142,8 @@ const cases = [
   { name: "quan", state: { thumb: "down", index: "down", middle: "down", ring: "down", pinky: "down" }, expect: "fist" }, // fist
   { name: "quan-wrap", state: null, expect: "fist", multi: "fist-wrap" }, // fist with thumb on knuckles
   { name: "cross", state: null, expect: "cross", multi: "cross" }, // crossed arms
+  { name: "cross-fold", state: null, expect: "cross", multi: "cross-fold" }, // folded arms
+  { name: "cross-uneven", state: null, expect: "cross", multi: "cross-uneven" }, // uneven height cross
   { name: "6", state: { thumb: "up", index: "down", middle: "down", ring: "down", pinky: "up" }, expect: "six" }, // six
   { name: "heart", state: null, expect: "heart", multi: "heart" }, // finger heart
   { name: "think", state: null, expect: "think", multi: "think" }, // thinking
@@ -129,6 +159,12 @@ cases.forEach((c) => {
   let result = null; // detect result
   if (c.multi === "cross") {
     const hands = mockCrossedArms(); // two hands cross
+    result = detectBuiltinGesture(hands[0], hands); // detect
+  } else if (c.multi === "cross-fold") {
+    const hands = mockFoldedArms(); // folded inward
+    result = detectBuiltinGesture(hands[0], hands); // detect
+  } else if (c.multi === "cross-uneven") {
+    const hands = mockUnevenCross(); // uneven height
     result = detectBuiltinGesture(hands[0], hands); // detect
   } else if (c.multi === "heart") {
     result = detectBuiltinGesture(mockFingerHeart()); // finger heart
