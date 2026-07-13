@@ -119,9 +119,9 @@ body {
   overflow: auto; /* 内容溢出滚动 */
 }
 
-/* 各窗口初始位置（避免重叠） */
-#win-webcam { top: 40px; left: 100px; }
-#win-memes { top: 80px; left: 520px; }
+/* 各窗口初始位置（摄像头与表情包并排，互不重叠） */
+#win-webcam { top: 36px; left: 96px; } /* 左侧：摄像头窗口 */
+#win-memes { top: 36px; left: 640px; } /* 右侧：表情包窗口（避开摄像头约 500px 宽度） */
 #win-my-memes { top: 60px; left: 200px; }
 #win-mines { top: 100px; left: 280px; }
 #win-computer { top: 50px; left: 150px; }
@@ -546,6 +546,15 @@ input[type="file"] {
     right: 8px; /* 靠右 */
     width: auto !important; /* 自适应宽度 */
     max-width: calc(100vw - 16px); /* 留边距 */
+  }
+
+  /* 小屏上下错开，避免摄像头与表情包叠在同一位置 */
+  #win-webcam {
+    top: 72px !important; /* 摄像头靠上 */
+  }
+
+  #win-memes {
+    top: 420px !important; /* 表情包靠下，与摄像头错开 */
   }
 
   .webcam-body,

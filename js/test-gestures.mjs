@@ -97,6 +97,29 @@ function mockUnevenCross() {
   return [left, right]; // 高低差交叉
 }
 
+// Mock prayer hands: palms together, fingers up, wrists close
+function mockPrayerHands() {
+  const left = mockHand({ thumb: "up", index: "up", middle: "up", ring: "up", pinky: "up" }); // 左手张开朝上
+  const right = mockHand({ thumb: "up", index: "up", middle: "up", ring: "up", pinky: "up" }); // 右手张开朝上
+  left[0] = pt(0.46, 0.64); // 左腕靠中
+  left[5] = pt(0.45, 0.50); // 左食指根
+  left[9] = pt(0.46, 0.48); // 左中指根
+  left[13] = pt(0.47, 0.50); // 左无名指根
+  left[17] = pt(0.48, 0.52); // 左小指根
+  left[8] = pt(0.45, 0.30); // 左食指尖朝上
+  left[12] = pt(0.46, 0.28); // 左中指尖朝上
+  left[16] = pt(0.47, 0.30); // 左无名指尖朝上
+  right[0] = pt(0.54, 0.64); // 右腕靠近左腕
+  right[5] = pt(0.53, 0.50); // 右食指根
+  right[9] = pt(0.54, 0.48); // 右中指根
+  right[13] = pt(0.55, 0.50); // 右无名指根
+  right[17] = pt(0.56, 0.52); // 右小指根
+  right[8] = pt(0.53, 0.30); // 右食指尖朝上
+  right[12] = pt(0.54, 0.28); // 右中指尖朝上
+  right[16] = pt(0.55, 0.30); // 右无名指尖朝上
+  return [left, right]; // 双手合十
+}
+
 // Mock finger-heart: thumb tip near index tip, other fingers curled
 function mockFingerHeart() {
   const h = mockHand({ thumb: "up", index: "down", middle: "down", ring: "down", pinky: "down" }); // base curled
@@ -134,6 +157,19 @@ function mockThinking() {
   return h; // landmarks
 }
 
+// Mock chin L-shape thinking (thumb horizontal, index up) — mid tip distance dead-zone case
+function mockThinkingL() {
+  const h = mockHand({ thumb: "up", index: "up", middle: "down", ring: "down", pinky: "down" }); // 食拇
+  h[0] = pt(0.58, 0.62); // 腕在下巴侧下方
+  h[9] = pt(0.55, 0.50); // 中指根（handSize）
+  h[4] = pt(0.42, 0.48); // 拇指尖水平托下巴
+  h[3] = pt(0.46, 0.52); // 拇指关节
+  h[8] = pt(0.52, 0.32); // 食指尖斜向上
+  h[6] = pt(0.54, 0.42); // 食指 pip
+  h[5] = pt(0.56, 0.50); // 食指 mcp
+  return h; // landmarks
+}
+
 // Cases: names match image filenames
 const cases = [
   { name: "ok", state: { special: "ok", thumb: "up", index: "down", middle: "up", ring: "up", pinky: "up" }, expect: "ok" }, // OK
@@ -147,6 +183,8 @@ const cases = [
   { name: "6", state: { thumb: "up", index: "down", middle: "down", ring: "down", pinky: "up" }, expect: "six" }, // six
   { name: "heart", state: null, expect: "heart", multi: "heart" }, // finger heart
   { name: "think", state: null, expect: "think", multi: "think" }, // thinking
+  { name: "think-L", state: null, expect: "think", multi: "think-L" }, // chin L thinking
+  { name: "pray", state: null, expect: "pray", multi: "pray" }, // prayer hands blessing
 ];
 
 let pass = 0; // pass count
@@ -166,12 +204,17 @@ cases.forEach((c) => {
   } else if (c.multi === "cross-uneven") {
     const hands = mockUnevenCross(); // uneven height
     result = detectBuiltinGesture(hands[0], hands); // detect
+  } else if (c.multi === "pray") {
+    const hands = mockPrayerHands(); // prayer hands
+    result = detectBuiltinGesture(hands[0], hands); // detect
   } else if (c.multi === "heart") {
     result = detectBuiltinGesture(mockFingerHeart()); // finger heart
   } else if (c.multi === "fist-wrap") {
     result = detectBuiltinGesture(mockFistThumbWrap()); // fist thumb wrap ≠ heart
   } else if (c.multi === "think") {
     result = detectBuiltinGesture(mockThinking()); // thinking
+  } else if (c.multi === "think-L") {
+    result = detectBuiltinGesture(mockThinkingL()); // chin L thinking
   } else {
     const lm = mockHand({ ...c.state }); // mock single
     result = detectBuiltinGesture(lm); // single hand

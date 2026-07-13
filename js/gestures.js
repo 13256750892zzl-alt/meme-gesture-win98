@@ -7,7 +7,8 @@ export const BUILTIN_GESTURES = [
   { id: "cross", name: "交叉手臂", image: "assets/memes/交叉手臂.jpg", type: "builtin", hint: "两只手臂在胸前交叉成 X（尽量让双手都入镜）" }, // 交叉手臂
   { id: "six", name: "6", image: "assets/memes/6.jpg", type: "builtin", hint: "拇指+小指伸出，其余收拢" }, // 比六
   { id: "heart", name: "比心", image: "assets/memes/比心.jpg", type: "builtin", hint: "大拇指和食指伸出来，指尖贴近比成心形，其余三指收拢" }, // 比心
-  { id: "think", name: "思考", image: "assets/memes/思考.jpg", type: "builtin", hint: "拇指+食指伸出成 V 托下巴，其余三指收拢" }, // 思考
+  { id: "think", name: "思考", image: "assets/memes/思考.jpg", type: "builtin", hint: "拇指+食指伸出成 L/V 托下巴，其余三指收拢" }, // 思考
+  { id: "pray", name: "祝福", image: "assets/memes/祝福.jpg", type: "builtin", hint: "双手合十，掌心相对、手指朝上" }, // 双手合十祝福
 ];
 
 // 计算两点距离
@@ -119,15 +120,33 @@ function isFist(lm, f, handSize) {
   return true; // 符合攥拳
 }
 
-// 思考：拇指+食指伸出成 V 托下巴，其余收拢，指尖不贴合（如图）
+// 思考：拇+食指伸出成 L/V 托下巴，其余收拢；填补与比心之间的识别死区
 function isThinking(lm, f, thumbIndexDist, handSize) {
-  if (!f.index) return false; // 食指须伸直
-  if (!(f.thumbOut || f.thumbUp)) return false; // 拇指须伸出
-  if (f.middle || f.ring || f.pinky) return false; // 其余三指收拢
-  const tipsApart = thumbIndexDist > Math.max(0.07, handSize * 0.5); // 指尖分开成 V（区别于比心）
-  if (!tipsApart) return false; // 太近则更像比心
-  const c = palmCenter(lm); // 掌心位置
-  if (c.y > 0.72) return false; // 手太低不像托下巴思考
+  if (f.middle || f.ring || f.pinky) return false; // 其余三指必须收拢（区别比耶）
+
+  const thumbTip = lm[4]; // 拇指尖
+  const indexTip = lm[8]; // 食指尖
+  const indexMcp = lm[5]; // 食指根
+  const wrist = lm[0]; // 手腕
+  const palm = palmCenter(lm); // 掌心
+
+  // 食指须明显伸出/朝上（点赞、攥拳时食指收拢，不能误判）
+  const indexUpish = indexTip.y < indexMcp.y - 0.025; // 指尖高于根部（含斜向）
+  if (!f.index && !indexUpish) return false; // 食指未伸出
+
+  // 拇指须伸出：朝上/张开，或相对手掌够远（水平托下巴也能过）
+  const thumbReach = dist(thumbTip, wrist); // 拇指伸出长度
+  if (!(f.thumbOut || f.thumbUp || thumbReach > handSize * 0.6)) return false; // 拇指未伸出
+
+  // 指尖分开成 L/V（区别比心）；阈值放宽，消除中间死区
+  if (thumbIndexDist <= Math.max(0.045, handSize * 0.32)) return false; // 太近更像比心
+
+  // 托下巴：掌心不要太低（放宽原 0.72，减少半身/远景漏检）
+  if (palm.y > 0.82) return false; // 手过低
+
+  // 食指尖须离开掌心（真正伸出，避免收拢手指误检）
+  if (dist(indexTip, palm) < handSize * 0.42) return false; // 食指仍贴掌
+
   return true; // 符合思考
 }
 
@@ -194,9 +213,70 @@ function detectCrossedArms(multiHands) {
   return false; // 未匹配交叉
 }
 
+// 单手是否大致「手指朝上」（合十时双手指尖向上）
+function handFingersUp(lm) {
+  const tips = [lm[8], lm[12], lm[16]]; // 食/中/无名指尖
+  const mcps = [lm[5], lm[9], lm[13]]; // 对应指根
+  let up = 0; // 朝上指数量
+  for (let i = 0; i < tips.length; i += 1) {
+    if (tips[i].y < mcps[i].y - 0.02) up += 1; // 指尖高于指根
+  }
+  return up >= 2; // 至少两指朝上
+}
+
+// 检测双手合十：掌心相对贴合、手腕靠近、手指朝上（区别于交叉手臂）
+function detectPrayerHands(multiHands) {
+  if (!multiHands || multiHands.length < 2) return false; // 需要双手
+  const a = multiHands[0]; // 第一只手
+  const b = multiHands[1]; // 第二只手
+  if (!a?.length || !b?.length) return false; // 无效关键点
+
+  const wa = a[0]; // 手腕 A
+  const wb = b[0]; // 手腕 B
+  const ca = palmCenter(a); // 掌心 A
+  const cb = palmCenter(b); // 掌心 B
+  const tipA = { x: (a[8].x + a[12].x) / 2, y: (a[8].y + a[12].y) / 2 }; // A 指尖中点
+  const tipB = { x: (b[8].x + b[12].x) / 2, y: (b[8].y + b[12].y) / 2 }; // B 指尖中点
+
+  // 双手高度接近（合十时左右手齐平）
+  if (Math.abs(ca.y - cb.y) > 0.2) return false; // 掌心高低差过大
+  if (Math.abs(wa.y - wb.y) > 0.22) return false; // 手腕高低差过大
+
+  // 手腕必须很近（合十贴合；交叉手臂手腕通常明显分开）
+  const wristDist = dist(wa, wb); // 手腕距离
+  if (wristDist > 0.18) return false; // 手腕过远 → 更像交叉/其他
+  if (Math.abs(wa.x - wb.x) > 0.16) return false; // 手腕横向也须靠近
+
+  // 掌心贴近
+  if (dist(ca, cb) > 0.18) return false; // 掌心过远
+
+  // 手指大致朝上
+  if (!handFingersUp(a) || !handFingersUp(b)) return false; // 双手指尖向上
+
+  // 指尖也靠近（两掌对齐）
+  if (dist(tipA, tipB) > 0.22) return false; // 指尖分太开
+
+  // 排除交叉：腕与掌左右关系相反且腕距不算极近时，视为交叉而非合十
+  const palmsCross = (wa.x - wb.x) * (ca.x - cb.x) < 0; // 腕与掌左右相反
+  if (palmsCross && wristDist > 0.1) return false; // 交叉姿态排除
+
+  // 合十通常在胸前/脸前，不要太低
+  if ((ca.y + cb.y) / 2 > 0.82) return false; // 过低
+
+  // 指尖应明显高于手腕（双手竖起合十）
+  if (tipA.y > wa.y - 0.08 || tipB.y > wb.y - 0.08) return false; // 指尖不够朝上
+
+  return true; // 符合双手合十
+}
+
 // 内置手势识别（可传入多只手）
 export function detectBuiltinGesture(landmarks, multiHands = null) {
   const hands = multiHands || (landmarks ? [landmarks] : null); // 手列表
+
+  // 双手合十（祝福）优先于交叉手臂，避免贴合双手被误判为交叉
+  if (detectPrayerHands(hands)) {
+    return BUILTIN_GESTURES.find((g) => g.id === "pray"); // 祝福
+  }
 
   // 交叉手臂（双手胸前交叉）
   if (detectCrossedArms(hands)) {
@@ -288,7 +368,9 @@ function stabilize(gesture) {
     lastGestureId = gesture.id; // 新的手势
     stableCount = 1; // 重置计数
   }
-  if (stableCount >= STABLE_FRAMES) return gesture; // 确认
+  // 思考手势更快确认（1 帧），其余仍需连续稳定帧
+  const need = gesture.id === "think" ? 1 : STABLE_FRAMES; // 所需稳定帧
+  if (stableCount >= need) return gesture; // 确认
   return null; // 尚未稳定
 }
 
