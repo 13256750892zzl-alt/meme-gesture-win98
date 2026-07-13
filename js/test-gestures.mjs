@@ -69,26 +69,29 @@ function mockCrossedArms() {
   return [left, right]; // both hands
 }
 
-// Mock two hands covering mouth (like screenshot, both sides)
-function mockCoverMouth() {
-  const make = (ox) => {
-    const h = mockHand({ thumb: "up", index: "up", middle: "up", ring: "up", pinky: "up" }); // flat open
-    h[0] = pt(0.50 + ox, 0.48, 0.0); // wrist near face
-    h[5] = pt(0.44 + ox, 0.36, -0.01); // index mcp
-    h[9] = pt(0.50 + ox, 0.34, -0.02); // middle mcp
-    h[13] = pt(0.55 + ox, 0.36, -0.01); // ring mcp
-    h[17] = pt(0.58 + ox, 0.38, 0.0); // pinky mcp
-    h[8] = pt(0.45 + ox, 0.26, 0.01); // index tip up
-    h[12] = pt(0.50 + ox, 0.24, 0.01); // middle tip
-    h[16] = pt(0.54 + ox, 0.26, 0.01); // ring tip
-    h[20] = pt(0.57 + ox, 0.28, 0.01); // pinky tip
-    h[6] = pt(0.44 + ox, 0.31, 0.0); // index pip
-    h[10] = pt(0.50 + ox, 0.29, 0.0); // middle pip
-    h[14] = pt(0.54 + ox, 0.31, 0.0); // ring pip
-    h[18] = pt(0.57 + ox, 0.33, 0.0); // pinky pip
-    return h; // one cover hand
-  };
-  return [make(-0.08), make(0.08)]; // left + right near mouth
+// Mock finger-heart: thumb tip near index tip, other fingers curled
+function mockFingerHeart() {
+  const h = mockHand({ thumb: "up", index: "down", middle: "down", ring: "down", pinky: "down" }); // base curled
+  h[4] = pt(0.46, 0.48); // thumb tip
+  h[3] = pt(0.44, 0.52); // thumb ip
+  h[8] = pt(0.48, 0.48); // index tip near thumb (heart)
+  h[6] = pt(0.47, 0.46); // index pip above tip = bent
+  h[7] = pt(0.47, 0.47); // index dip
+  h[5] = pt(0.46, 0.58); // index mcp
+  return h; // landmarks
+}
+
+// Mock thinking: thumb + index extended as V, others curled
+function mockThinking() {
+  const h = mockHand({ thumb: "up", index: "up", middle: "down", ring: "down", pinky: "down" }); // 食拇
+  h[0] = pt(0.5, 0.70); // wrist near chin area
+  h[4] = pt(0.36, 0.42); // thumb tip out
+  h[3] = pt(0.40, 0.50); // thumb ip
+  h[8] = pt(0.56, 0.28); // index tip up, apart from thumb
+  h[6] = pt(0.54, 0.48); // index pip
+  h[5] = pt(0.52, 0.60); // index mcp
+  h[9] = pt(0.50, 0.58); // middle mcp for handSize
+  return h; // landmarks
 }
 
 // Cases: names match image filenames
@@ -99,7 +102,8 @@ const cases = [
   { name: "quan", state: { thumb: "down", index: "down", middle: "down", ring: "down", pinky: "down" }, expect: "fist" }, // fist
   { name: "cross", state: null, expect: "cross", multi: "cross" }, // crossed arms
   { name: "6", state: { thumb: "up", index: "down", middle: "down", ring: "down", pinky: "up" }, expect: "six" }, // six
-  { name: "cover", state: null, expect: "cover", multi: "cover" }, // two-hand cover mouth
+  { name: "heart", state: null, expect: "heart", multi: "heart" }, // finger heart
+  { name: "think", state: null, expect: "think", multi: "think" }, // thinking
 ];
 
 let pass = 0; // pass count
@@ -113,9 +117,10 @@ cases.forEach((c) => {
   if (c.multi === "cross") {
     const hands = mockCrossedArms(); // two hands cross
     result = detectBuiltinGesture(hands[0], hands); // detect
-  } else if (c.multi === "cover") {
-    const hands = mockCoverMouth(); // two hands cover
-    result = detectBuiltinGesture(hands[0], hands); // detect
+  } else if (c.multi === "heart") {
+    result = detectBuiltinGesture(mockFingerHeart()); // finger heart
+  } else if (c.multi === "think") {
+    result = detectBuiltinGesture(mockThinking()); // thinking
   } else {
     const lm = mockHand({ ...c.state }); // mock single
     result = detectBuiltinGesture(lm); // single hand

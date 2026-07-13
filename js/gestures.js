@@ -6,7 +6,8 @@ export const BUILTIN_GESTURES = [
   { id: "fist", name: "攥拳", image: "assets/memes/攥拳.jpg", type: "builtin", hint: "五指全部收拢成拳" }, // 攥拳
   { id: "cross", name: "交叉手臂", image: "assets/memes/交叉手臂.jpg", type: "builtin", hint: "两只手臂在胸前交叉成 X" }, // 交叉手臂
   { id: "six", name: "6", image: "assets/memes/6.jpg", type: "builtin", hint: "拇指+小指伸出，其余收拢" }, // 比六
-  { id: "cover", name: "捂嘴", image: "assets/memes/捂嘴.jpg", type: "builtin", hint: "双手手背朝镜头，并拢捂在嘴前（如图）" }, // 捂嘴
+  { id: "heart", name: "比心", image: "assets/memes/比心.jpg", type: "builtin", hint: "拇指与食指尖贴近成心，其余三指收拢" }, // 比心
+  { id: "think", name: "思考", image: "assets/memes/思考.jpg", type: "builtin", hint: "拇指+食指伸出成 V 托下巴，其余三指收拢" }, // 思考
 ];
 
 // 计算两点距离
@@ -20,53 +21,6 @@ function palmCenter(lm) {
     x: (lm[0].x + lm[5].x + lm[9].x + lm[17].x) / 4, // 腕+三指根平均 x
     y: (lm[0].y + lm[5].y + lm[9].y + lm[17].y) / 4, // 腕+三指根平均 y
   }; // 返回掌心
-}
-
-// 单只手是否为「捂嘴」姿势：手背朝镜头、四指伸直并拢、抬到脸前
-function isOneCoverHand(lm) {
-  if (!lm || lm.length < 21) return false; // 无效
-  const f = fingerStates(lm); // 手指状态
-  const upCount = [f.index, f.middle, f.ring, f.pinky].filter(Boolean).length; // 伸直数
-  if (upCount < 3) return false; // 至少三指伸直（平手捂嘴）
-  const tips = [lm[8], lm[12], lm[16], lm[20]]; // 四指尖
-  const tipSpread = Math.max(...tips.map((t) => t.x)) - Math.min(...tips.map((t) => t.x)); // 横向跨度
-  if (tipSpread > 0.34) return false; // 手指需并拢，不能大幅张开
-  const c = palmCenter(lm); // 掌心
-  if (c.y > 0.52) return false; // 必须抬到脸/嘴附近（比胸前交叉更高）
-  if (c.x < 0.12 || c.x > 0.88) return false; // 水平靠近脸部
-  // 手背朝镜头：掌心法向 z 为正；若深度不稳，只要手指并拢抬脸也放宽通过
-  const nz = palmNormalZ(lm); // 掌心法向
-  if (nz < -0.012) return false; // 明显掌心朝镜头则排除
-  return true; // 符合单手捂嘴
-}
-
-// 掌心法向 z：负值偏掌心朝镜头，正值偏手背朝镜头
-function palmNormalZ(lm) {
-  const w = lm[0]; // 手腕
-  const i = lm[5]; // 食指 MCP
-  const p = lm[17]; // 小指 MCP
-  const ax = i.x - w.x; // 腕→食指 x
-  const ay = i.y - w.y; // 腕→食指 y
-  const az = (i.z || 0) - (w.z || 0); // 腕→食指 z
-  const bx = p.x - w.x; // 腕→小指 x
-  const by = p.y - w.y; // 腕→小指 y
-  const bz = (p.z || 0) - (w.z || 0); // 腕→小指 z
-  return ax * by - ay * bx + (ay * bz - az * by) * 0.15 + (az * bx - ax * bz) * 0.15; // 平面叉积为主
-}
-
-// 捂嘴：必须双手，都像截图那样捂在嘴前
-function isCoverMouth(multiHands) {
-  if (!multiHands || multiHands.length < 2) return false; // 必须双手
-  const a = multiHands[0]; // 左手/第一只
-  const b = multiHands[1]; // 右手/第二只
-  if (!isOneCoverHand(a) || !isOneCoverHand(b)) return false; // 两只都要符合姿势
-  const ca = palmCenter(a); // 掌心 A
-  const cb = palmCenter(b); // 掌心 B
-  const apart = Math.hypot(ca.x - cb.x, ca.y - cb.y); // 双手间距
-  if (apart > 0.38) return false; // 必须都捂在嘴附近，不能分太开
-  // 排除交叉手臂：捂嘴时双手都在脸部偏上，掌心都偏高
-  const avgY = (ca.y + cb.y) / 2; // 平均高度
-  return avgY < 0.50; // 确认在脸部区域（高于胸前交叉）
 }
 
 // 判断两线段是否相交（用于交叉手臂）
@@ -96,7 +50,7 @@ function isThumbUp(lm) {
   return tip.y < ip.y - 0.02 && dist(tip, indexMcp) > 0.06; // 拇指朝上且离开食指
 }
 
-// 拇指是否伸出（比六用）
+// 拇指是否伸出（比六 / 思考用）
 function isThumbOut(lm) {
   const tip = lm[4]; // 拇指尖
   const wrist = lm[0]; // 手腕
@@ -113,6 +67,26 @@ function fingerStates(lm) {
     thumbUp: isThumbUp(lm), // 拇指朝上
     thumbOut: isThumbOut(lm), // 拇指展开
   }; // 返回状态对象
+}
+
+// 比心：拇指尖与食指尖贴近成心形，中指/无名指/小指收拢（如图）
+function isFingerHeart(f, thumbIndexDist, handSize) {
+  const tipsClose = thumbIndexDist < Math.max(0.055, handSize * 0.42); // 指尖贴近（与 OK 成圈同阈值）
+  if (!tipsClose) return false; // 未成心
+  if (f.middle || f.ring || f.pinky) return false; // 其余三指必须收拢（区别于 OK）
+  return true; // 符合比心
+}
+
+// 思考：拇指+食指伸出成 V 托下巴，其余收拢，指尖不贴合（如图）
+function isThinking(lm, f, thumbIndexDist, handSize) {
+  if (!f.index) return false; // 食指须伸直
+  if (!(f.thumbOut || f.thumbUp)) return false; // 拇指须伸出
+  if (f.middle || f.ring || f.pinky) return false; // 其余三指收拢
+  const tipsApart = thumbIndexDist > Math.max(0.07, handSize * 0.5); // 指尖分开成 V（区别于比心）
+  if (!tipsApart) return false; // 太近则更像比心
+  const c = palmCenter(lm); // 掌心位置
+  if (c.y > 0.72) return false; // 手太低不像托下巴思考
+  return true; // 符合思考
 }
 
 // 检测交叉手臂：两只手前臂（手腕→中指根）在画面中相交
@@ -138,11 +112,6 @@ function detectCrossedArms(multiHands) {
 export function detectBuiltinGesture(landmarks, multiHands = null) {
   const hands = multiHands || (landmarks ? [landmarks] : null); // 手列表
 
-  // 捂嘴：双手捂嘴（优先于交叉手臂，避免脸前双手被误判）
-  if (isCoverMouth(hands)) {
-    return BUILTIN_GESTURES.find((g) => g.id === "cover"); // 捂嘴
-  }
-
   // 交叉手臂（双手胸前交叉）
   if (detectCrossedArms(hands)) {
     return BUILTIN_GESTURES.find((g) => g.id === "cross"); // 交叉手臂
@@ -151,7 +120,7 @@ export function detectBuiltinGesture(landmarks, multiHands = null) {
   if (!landmarks || landmarks.length < 21) return null; // 无效单手输入
   const f = fingerStates(landmarks); // 各指状态
   const thumbTip = landmarks[4]; // 拇指尖
-  const indexTip = landmarks[8]; // 食指尖（OK 成圈用）
+  const indexTip = landmarks[8]; // 食指尖（OK / 比心成圈用）
   const thumbIndexDist = dist(thumbTip, indexTip); // 拇指食指距离
   const handSize = dist(landmarks[0], landmarks[9]) || 0.2; // 手掌尺度（手腕到中指根）
   const okCircle = thumbIndexDist < Math.max(0.055, handSize * 0.42); // 拇指食指围成圈（相对手掌大小）
@@ -169,6 +138,16 @@ export function detectBuiltinGesture(landmarks, multiHands = null) {
   // 比六：拇指+小指伸，其余收
   if (f.thumbOut && f.pinky && !f.index && !f.middle && !f.ring) {
     return BUILTIN_GESTURES.find((g) => g.id === "six"); // 6
+  }
+
+  // 比心：拇食指尖贴近成心，其余收拢（优先于点赞，避免误判）
+  if (isFingerHeart(f, thumbIndexDist, handSize)) {
+    return BUILTIN_GESTURES.find((g) => g.id === "heart"); // 比心
+  }
+
+  // 思考：拇食指成 V，其余收拢（优先于点赞）
+  if (isThinking(landmarks, f, thumbIndexDist, handSize)) {
+    return BUILTIN_GESTURES.find((g) => g.id === "think"); // 思考
   }
 
   // 点赞：只有拇指竖起
